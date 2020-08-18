@@ -10,6 +10,7 @@ import sys
 import codecs
 import tempfile
 import logging
+import tqdm
 from collections import deque
 from getpass import getpass
 from time import sleep
@@ -210,7 +211,7 @@ class TelegramDumper(TelegramClient):
                     or -1 if there are no more messages.
         """
         messages = []
-
+        print(self)
         # First retrieve the messages and some information
         # make 5 attempts
         for _ in range(0, 5):
@@ -219,7 +220,7 @@ class TelegramDumper(TelegramClient):
                 # before failing
                 messages = self.get_messages(
                     peer, limit=100, offset_id=self.id_offset)
-
+                print(messages[0].media.photo.id)
                 if messages.total > 0 and messages:
                     sprint('Processing messages with ids {}-{} ...'
                            .format(messages[0].id, messages[-1].id))
@@ -238,6 +239,10 @@ class TelegramDumper(TelegramClient):
         # Iterate over all (in reverse order so the latest appear
         # the last in the console) and print them with format provided by exporter.
         for msg in messages:
+            if(msg.media is not None):
+              if((float(msg.media.photo.sizes[-1].h)/float(msg.media.photo.sizes[-1].w)) > 1.3):
+                self.download_media(msg,"/content/photos/"+str(msg.media.photo.id)+".jpg")
+
             self.exporter_context.is_first_record = \
                 self.msg_count_to_process == 1
 
